@@ -1,0 +1,195 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        -48
+      ],
+      "id": "5c66bf7d-f406-483d-acea-edce59986f89",
+      "name": "Telegram Trigger",
+      "webhookId": "57d37d48-a8d5-4ed5-a19d-252c595ecb2b",
+      "credentials": {
+        "telegramApi": {
+          "id": "ERmuXvOXpJGdlyKo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "kamu adalah asistent virtusl saya untuk menganalisis data perjaanan gps saya yang saya berikan di sheets"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "1b5cd730-3975-4378-b028-af471225683f",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1008,
+        224
+      ],
+      "id": "02a8ee3b-c65f-4a74-a648-bd5a06bff81a",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "WqdvJqVbS7DsvbaU",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.from.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        1136,
+        240
+      ],
+      "id": "619ccc15-cae4-4b4a-80ae-07c50a75772d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1lZMHNMW9cQqPCFxcrvKWvVHLAjNGq0N_8e6vYM3Iz7Y",
+          "mode": "list",
+          "cachedResultName": "gps tutorial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lZMHNMW9cQqPCFxcrvKWvVHLAjNGq0N_8e6vYM3Iz7Y/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lZMHNMW9cQqPCFxcrvKWvVHLAjNGq0N_8e6vYM3Iz7Y/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1280,
+        272
+      ],
+      "id": "bb49f63f-a6e2-42cb-94c6-8ac22ce6979f",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hJPDTFfmlp0czKQp",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1376,
+        0
+      ],
+      "id": "30443d09-fcc1-48ad-852e-99988b9e6bd4",
+      "name": "Send a text message",
+      "webhookId": "dd81fd29-15e7-402d-a863-6e6ae0b2d955",
+      "credentials": {
+        "telegramApi": {
+          "id": "ERmuXvOXpJGdlyKo",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "72e6c939851189f9134b770bb34f482aa8366c4fe21fd41410ad8a821a7f1863"
+  }
+}
